@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import { initializeAgentServices, graph, executeWorkflowWithRecovery } from './agent';
 import { AgentState } from './state';
+import { CopilotKitHTTPEndpoint } from "@copilotkit/sdk-js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -39,6 +40,11 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// CopilotKit endpoint
+app.use("/copilotkit", CopilotKitHTTPEndpoint({
+  graph: graph,
+}));
+
 // Agent execution endpoint
 app.post('/agent/execute', async (req, res) => {
   try {
@@ -70,21 +76,22 @@ app.get('/metrics', async (req, res) => {
 // Initialize and start server
 async function startServer() {
   try {
-    console.log('=� Starting Enhanced Research Agent Server...');
+    console.log('🚀 Starting Enhanced Research Agent Server...');
     
     // Initialize all services
     await initializeAgentServices();
     
     // Start the server
     app.listen(PORT, () => {
-      console.log(` Server running on port ${PORT}`);
-      console.log(`<� Health check: http://localhost:${PORT}/health`);
-      console.log(`=� Metrics: http://localhost:${PORT}/metrics`);
-      console.log(`> Agent API: http://localhost:${PORT}/agent/execute`);
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+      console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
+      console.log(`🤖 Agent API: http://localhost:${PORT}/agent/execute`);
+      console.log(`🔗 CopilotKit: http://localhost:${PORT}/copilotkit`);
     });
     
   } catch (error) {
-    console.error('L Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }

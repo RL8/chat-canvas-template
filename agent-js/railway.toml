@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[[services]]
+name = "copilotkit-backend"
+source = "."
+
+[services.variables]
+PORT = "8000"
+NODE_ENV = "production"

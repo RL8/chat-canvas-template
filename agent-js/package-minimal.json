@@ -4,7 +4,7 @@
   "description": "Minimal backend for CopilotKit frontend",
   "main": "dist/minimal-server.js",
   "scripts": {
-    "build": "tsc src/minimal-server.ts --outDir dist --target es2020 --module commonjs --esModuleInterop",
+    "build": "tsc minimal-server.ts --outDir dist --target es2020 --module commonjs --esModuleInterop",
     "start": "node dist/minimal-server.js",
     "dev": "ts-node src/minimal-server.ts"
   },
