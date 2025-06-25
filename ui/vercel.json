@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "chat-canvas-template",
   "builds": [
     {
       "src": "package.json",
@@ -16,8 +15,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "NEXT_PUBLIC_COPILOT_CLOUD_API_KEY": "@copilot_api_key"
-  }
+  ]
 } 
