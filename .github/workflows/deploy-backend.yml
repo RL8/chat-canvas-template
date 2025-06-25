@@ -1,0 +1,45 @@
+name: Deploy Backend to Railway
+
+on:
+  push:
+    branches: [master, main]
+    paths: ['agent-js/**']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: agent-js/package.json
+
+      - name: Prepare minimal backend
+        run: |
+          cd agent-js
+          cp package-minimal.json package.json
+          npm ci
+
+      - name: Build project
+        run: |
+          cd agent-js
+          npm run build
+
+      - name: Deploy to Railway
+        uses: railway-app/railway-deploy@v1
+        with:
+          service: 'copilotkit-backend'
+          environment: 'production'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Update Vercel Environment
+        run: |
+          echo "Backend deployed! Update REMOTE_ACTION_URL in Vercel to the new Railway URL"
