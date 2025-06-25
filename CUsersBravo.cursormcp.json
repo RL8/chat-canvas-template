@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "claude-code-global": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        "C:\\Users\\Bravo\\.claude-tools\\.env",
+        "claude-code-cli"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "gho_agitSgFe1ae59og7dDby57vYXoyDM2ki6vm"
+      }
+    }
+  }
+}

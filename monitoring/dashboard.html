@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Agent Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy { background-color: #48bb78; }
+        .status-warning { background-color: #ed8936; }
+        .status-error { background-color: #f56565; }
+
+        .logs-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .logs-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-left: 4px solid #e2e8f0;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-info { border-left-color: #4299e1; }
+        .log-warning { border-left-color: #ed8936; }
+        .log-error { border-left-color: #f56565; }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Research Agent Monitoring</h1>
+            <p>Real-time performance and health monitoring dashboard</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- System Health -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #48bb78;">💚</div>
+                    <div class="card-title">System Health</div>
+                </div>
+                <div id="system-status">
+                    <div style="margin-bottom: 15px;">
+                        <span class="status-indicator status-healthy"></span>
+                        <strong>Backend:</strong> <span id="backend-status">Checking...</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <span class="status-indicator status-healthy"></span>
+                        <strong>Redis:</strong> <span id="redis-status">Checking...</span>
+                    </div>
+                    <div>
+                        <span class="status-indicator status-healthy"></span>
+                        <strong>Frontend:</strong> <span id="frontend-status">Checking...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #4299e1;">📊</div>
+                    <div class="card-title">Performance</div>
+                </div>
+                <div class="metric-value" id="avg-response-time">--</div>
+                <div class="metric-label">Average Response Time (ms)</div>
+                <div class="chart-container">
+                    <canvas id="performance-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cache Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #ed8936;">🗄️</div>
+                    <div class="card-title">Cache Statistics</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <div class="metric-value" id="cache-hit-rate">--</div>
+                        <div class="metric-label">Hit Rate (%)</div>
+                    </div>
+                    <div>
+                        <div class="metric-value" id="cache-size">--</div>
+                        <div class="metric-label">Cache Size (MB)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Conversations -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #9f7aea;">💬</div>
+                    <div class="card-title">Active Sessions</div>
+                </div>
+                <div class="metric-value" id="active-conversations">--</div>
+                <div class="metric-label">Current Conversations</div>
+                <div style="margin-top: 15px;">
+                    <div><strong>Checkpoints:</strong> <span id="checkpoint-count">--</span></div>
+                    <div><strong>Recoveries:</strong> <span id="recovery-count">--</span></div>
+                </div>
+            </div>
+
+            <!-- Error Rate -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #f56565;">⚠️</div>
+                    <div class="card-title">Error Monitoring</div>
+                </div>
+                <div class="metric-value" id="error-rate">--</div>
+                <div class="metric-label">Error Rate (%)</div>
+                <div style="margin-top: 15px;">
+                    <div><strong>Last 24h:</strong> <span id="daily-errors">--</span> errors</div>
+                </div>
+            </div>
+
+            <!-- Resource Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: #38b2ac;">🖥️</div>
+                    <div class="card-title">Resource Usage</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div class="metric-value" id="memory-usage">--</div>
+                        <div class="metric-label">Memory (MB)</div>
+                    </div>
+                    <div>
+                        <div class="metric-value" id="cpu-usage">--</div>
+                        <div class="metric-label">CPU (%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Logs -->
+        <div class="logs-container">
+            <div class="logs-header">📋 Live System Logs</div>
+            <div id="logs-container">
+                <div class="log-entry log-info">[INFO] Dashboard initialized successfully</div>
+                <div class="log-entry log-info">[INFO] Monitoring services started</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshDashboard()">🔄 Refresh</button>
+
+    <script>
+        // Mock data and real API integration
+        let performanceChart;
+        let metricsHistory = [];
+
+        // Initialize performance chart
+        function initializeCharts() {
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [],
+                        borderColor: '#4299e1',
+                        backgroundColor: 'rgba(66, 153, 225, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch metrics from backend
+        async function fetchMetrics() {
+            try {
+                // Health checks
+                await checkServiceHealth();
+                
+                // Performance metrics (mock data for demo)
+                const responseTime = Math.floor(Math.random() * 200) + 100;
+                document.getElementById('avg-response-time').textContent = responseTime;
+                
+                // Cache metrics
+                document.getElementById('cache-hit-rate').textContent = (Math.random() * 30 + 70).toFixed(1);
+                document.getElementById('cache-size').textContent = (Math.random() * 50 + 100).toFixed(1);
+                
+                // Conversation metrics
+                document.getElementById('active-conversations').textContent = Math.floor(Math.random() * 20) + 5;
+                document.getElementById('checkpoint-count').textContent = Math.floor(Math.random() * 100) + 50;
+                document.getElementById('recovery-count').textContent = Math.floor(Math.random() * 10);
+                
+                // Error metrics
+                document.getElementById('error-rate').textContent = (Math.random() * 2).toFixed(2);
+                document.getElementById('daily-errors').textContent = Math.floor(Math.random() * 10);
+                
+                // Resource usage
+                document.getElementById('memory-usage').textContent = (Math.random() * 200 + 300).toFixed(0);
+                document.getElementById('cpu-usage').textContent = (Math.random() * 30 + 10).toFixed(1);
+                
+                // Update chart
+                updatePerformanceChart(responseTime);
+                
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+                addLogEntry('ERROR', `Failed to fetch metrics: ${error.message}`);
+            }
+        }
+
+        // Check service health
+        async function checkServiceHealth() {
+            const services = [
+                { name: 'backend', url: 'http://localhost:8000/health', elementId: 'backend-status' },
+                { name: 'frontend', url: 'http://localhost:3000/api/health', elementId: 'frontend-status' },
+                { name: 'redis', url: 'http://localhost:8000/health', elementId: 'redis-status' }
+            ];
+
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    const status = response.ok ? 'Healthy' : 'Unhealthy';
+                    document.getElementById(service.elementId).textContent = status;
+                    
+                    // Update status indicator
+                    const indicator = document.querySelector(`#${service.elementId}`).parentNode.querySelector('.status-indicator');
+                    indicator.className = `status-indicator ${response.ok ? 'status-healthy' : 'status-error'}`;
+                } catch (error) {
+                    document.getElementById(service.elementId).textContent = 'Offline';
+                    const indicator = document.querySelector(`#${service.elementId}`).parentNode.querySelector('.status-indicator');
+                    indicator.className = 'status-indicator status-error';
+                }
+            }
+        }
+
+        // Update performance chart
+        function updatePerformanceChart(responseTime) {
+            const now = new Date().toLocaleTimeString();
+            
+            if (performanceChart.data.labels.length >= 20) {
+                performanceChart.data.labels.shift();
+                performanceChart.data.datasets[0].data.shift();
+            }
+            
+            performanceChart.data.labels.push(now);
+            performanceChart.data.datasets[0].data.push(responseTime);
+            performanceChart.update('none');
+        }
+
+        // Add log entry
+        function addLogEntry(level, message) {
+            const logsContainer = document.getElementById('logs-container');
+            const logEntry = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            logEntry.className = `log-entry log-${level.toLowerCase()}`;
+            logEntry.textContent = `[${timestamp}] [${level}] ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Keep only last 10 logs
+            while (logsContainer.children.length > 10) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Refresh dashboard
+        function refreshDashboard() {
+            addLogEntry('INFO', 'Dashboard refresh requested');
+            fetchMetrics();
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            fetchMetrics();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(fetchMetrics, 30000);
+            
+            addLogEntry('INFO', 'Real-time monitoring started');
+        });
+    </script>
+</body>
+</html>

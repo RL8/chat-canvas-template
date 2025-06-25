@@ -22,6 +22,15 @@ export const AgentStateAnnotation = Annotation.Root({
   report: Annotation<string>,
   resources: Annotation<(typeof ResourceAnnotation.State)[]>,
   logs: Annotation<(typeof LogAnnotation.State)[]>,
+  userId: Annotation<string>,
+  threadId: Annotation<string>,
+  sessionId: Annotation<string>,
+  performance: Annotation<{
+    startTime: number;
+    lastActivity: number;
+    totalCost: number;
+    totalTokens: number;
+  }>,
   ...CopilotKitStateAnnotation.spec,
 });
 
